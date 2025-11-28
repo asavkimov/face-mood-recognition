@@ -10,3 +10,6 @@ tqdm>=4.66
 nltk>=3.9
 wordcloud>=1.9
 scikit-image>=0.22
+# Deep learning
+torch>=2.3
+torchvision>=0.18

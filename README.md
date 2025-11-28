@@ -150,3 +150,65 @@ No IRB approval required.
 4. Corneanu et al. (2016). *Survey on Facial Expression Recognition.*  
 5. Zhang et al. (2019). *Efficient Emotion Recognition Using MobileNet.*  
 6. Cohn & Kanade (2000). *CK+ Dataset.*
+
+---
+
+## 13. Baseline Model: Design & How to Run
+
+We provide two baseline image classifiers for FER2013 (7 classes):
+
+- `ResNet18Baseline` (transfer learning, ImageNet weights; recommended)
+- `SmallCNN` (lightweight custom CNN)
+
+### Data expected
+Use the already prepared splits under `data/processed/fer2013/{train,val,test}.csv` created by our EDA scripts.
+
+### Install deps
+```
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+```
+
+### Train (quick smoke test)
+Run a 1-epoch sanity check on a small subset (10 images per class) — finishes in a few minutes on CPU:
+```
+python3 scripts/train_image_baseline.py \
+  --model resnet18 \
+  --epochs 1 \
+  --freeze_epochs 0 \
+  --batch_size 64 \
+  --img_size 224 \
+  --limit_per_class 10 \
+  --no_amp
+```
+
+### Train (full)
+Fine-tune ResNet18 end-to-end for ~15 epochs:
+```
+python3 scripts/train_image_baseline.py \
+  --model resnet18 \
+  --epochs 15 \
+  --freeze_epochs 2 \
+  --batch_size 128 \
+  --img_size 224
+```
+Use `--model smallcnn` for the lightweight baseline.
+
+### Outputs
+- Checkpoints: `outputs/models/`
+- Metrics/logs: `outputs/metrics/train_log.csv`, `outputs/metrics/*classification_report*.json`
+- Plots: `outputs/plots/confusion_matrix_{val,test}.png`
+- Summary: `outputs/metrics/last_train_summary.json` (also appended to README automatically after a run)
+
+### Notes
+- Images are grayscale but models expect 3 channels; we repeat the channel to convert to RGB.
+- Loss uses class weights computed from training distribution.
+- Mixed precision is enabled by default when CUDA is available.
+- Set a different seed with `--seed` for reproducibility.
+
+### Baseline performance (expected ranges)
+Numbers vary by seed and augmentation; typical ranges reported on FER2013:
+- ResNet18 (transfer learning, 224px): 68–73% test accuracy
+- SmallCNN (from scratch): 58–65% test accuracy
+
+Run the training to generate your project’s exact metrics and plots.
